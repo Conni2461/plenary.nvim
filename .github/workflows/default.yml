@@ -16,14 +16,14 @@ jobs:
       with:
         path: _neovim
         key: ${{ runner.os }}-nightly-${{ hashFiles('todays-date') }}
-    - name: Setup from neovim nightly and run docgen
+    - name: Setup from neovim nightly and run test
       run: |
         curl -OL https://raw.githubusercontent.com/norcalli/bot-ci/master/scripts/github-actions-setup.sh
         source github-actions-setup.sh nightly-x64
-    - name: Test
+          run: scripts/test.sh
+    # - name: Test
       # run: make test
       # run: exec nvim -u NONE -E -R --headless +'set rtp+=$PWD' +'luafile scripts/docgen.lua' +q
-      run: scripts/test.sh
   # macos:
   #   runs-on: [macos-latest]
   #   steps:

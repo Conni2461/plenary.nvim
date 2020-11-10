@@ -134,11 +134,11 @@ describe('Job', function()
     end)
 
     it('should match larger systemlist', function()
-      local results = vim.fn.systemlist('fdfind')
+      local results = vim.fn.systemlist('find')
       local stdout_results = {}
 
       local job = Job:new {
-        command = 'fdfind',
+        command = 'find',
 
         on_stdout = function(_, line) table.insert(stdout_results, line) end
       }
@@ -160,7 +160,7 @@ describe('Job', function()
   end)
 
   describe('.writer', function()
-    it('should allow using things like fzf', function()
+    pending('should allow using things like fzf', function()
       local stdout_results = {}
 
       local fzf = Job:new {

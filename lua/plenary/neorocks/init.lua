@@ -6,7 +6,7 @@ local run = require('plenary.run')
 local window_float = require('plenary.window.float')
 
 -- TODO: We should consider not making windows when headless.
--- local headless = require('plenary.nvim_meta').is_headless
+local headless = require('plenary.nvim_meta').is_headless
 
 local neorocks = {}
 
@@ -25,6 +25,11 @@ neorocks.job_with_display_output = function(title_text, command, args)
     end
 
     if not self then
+      return
+    end
+
+    if headless then
+      io.write(data .. '\n')
       return
     end
 
@@ -159,6 +164,7 @@ neorocks._get_setup_job = function(force, opts)
       {
         neorocks._hererocks_file:absolute(),
         "--verbose",
+        force and "-i" or "",
         "-j",
         lua_version.jit,
         "-r",
@@ -166,6 +172,24 @@ neorocks._get_setup_job = function(force, opts)
         install_location:absolute()
       }
     )
+  else
+    error("Unsupported version")
+  end
+end
+
+neorocks.setup = function(force, quit)
+  quit = (quit == nil and true) or quit
+  neorocks.scheduler:insert(neorocks._get_setup_job(force))
+
+  if quit then
+    neorocks.scheduler:insert {
+      start = function()
+        vim.cmd [[qa!]]
+      end,
+
+      add_on_exit_callback = function()
+      end,
+    }
   end
 end
 

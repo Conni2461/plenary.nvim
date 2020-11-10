@@ -178,6 +178,7 @@ neorocks._get_setup_job = function(force, opts)
 end
 
 neorocks.setup = function(force, quit)
+  vim.fn.mkdir(neorocks._base_path:absolute(), "p")
   quit = (quit == nil and true) or quit
   neorocks.scheduler:insert(neorocks._get_setup_job(force))
 

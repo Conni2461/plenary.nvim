@@ -19,6 +19,11 @@ neorocks.job_with_display_output = function(title_text, command, args)
     title_text = {title_text}
   end
 
+  if headless then
+    io.write(command .. '\n')
+    io.write(vim.inspect(args) .. '\n')
+  end
+
   local outputter = vim.schedule_wrap(function(_, data, self)
     if data == nil then
       return

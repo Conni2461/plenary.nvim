@@ -22,7 +22,8 @@ jobs:
         source github-actions-setup.sh nightly-x64
     - name: Test
       # run: make test
-      run: exec nvim -u NONE -E -R --headless +'set rtp+=$PWD' +'luafile scripts/docgen.lua' +q
+      # run: exec nvim -u NONE -E -R --headless +'set rtp+=$PWD' +'luafile scripts/docgen.lua' +q
+      run: scripts/test.sh
   # macos:
   #   runs-on: [macos-latest]
   #   steps:

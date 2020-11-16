@@ -4,6 +4,9 @@ local Path = require("plenary.path")
 local path = Path.path
 
 describe('Path', function()
+  it("should fail", function()
+    assert.are.same(true, false)
+  end)
   it('should find valid files', function()
     local p = Path:new("README.md")
     assert(p.filename == "README.md", p.filename)

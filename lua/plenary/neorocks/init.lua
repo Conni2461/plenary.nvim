@@ -319,7 +319,7 @@ neorocks._get_install_job = function(package_name)
   return neorocks._get_luarocks_job(string.format('install %s', package_name))
 end
 
-neorocks.install = function(package_name, lua_name, force)
+neorocks.install = function(package_name, lua_name, force, should_quit)
   neorocks.scheduler:insert(neorocks._get_setup_job())
 
   if not force and neorocks.is_package_installed(package_name, lua_name) then
@@ -327,7 +327,24 @@ neorocks.install = function(package_name, lua_name, force)
     return
   end
 
-  return neorocks.scheduler:insert(neorocks._get_install_job(package_name))
+  local install_job = neorocks.scheduler:insert(neorocks._get_install_job(package_name))
+
+  if headless and should_quit == nil then
+    should_quit = true
+  end
+
+  if should_quit then
+    neorocks.scheduler:insert {
+      start = function()
+        vim.cmd [[qa!]]
+      end,
+
+      add_on_exit_callback = function()
+      end,
+    }
+  end
+
+  return install_job
 end
 
 neorocks.ensure_installed = function(package_name, lua_name)

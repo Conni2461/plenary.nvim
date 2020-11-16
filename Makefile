@@ -4,3 +4,4 @@ test: neorocks
 
 neorocks:
 	nvim -u scripts/minimal.vim --noplugin -c 'lua require("plenary.neorocks").setup()' --headless
+	nvim --headless -u 'scripts/minimal.vim' -c 'lua require("plenary.neorocks").install("penlight")

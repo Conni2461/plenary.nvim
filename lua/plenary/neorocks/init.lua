@@ -264,7 +264,7 @@ end
 
 --- Get the string to source hererocks
 neorocks._source_string = function(install_location)
-  local user_shell = os.getenv("SHELL")
+  local user_shell = os.getenv("SHELL") or "bash"
   local shell = user_shell:gmatch("([^/]*)$")()
   if shell == "fish" then
     return source_activate(install_location, 'activate.fish')

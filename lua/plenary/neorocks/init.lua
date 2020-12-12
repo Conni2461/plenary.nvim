@@ -80,9 +80,19 @@ neorocks.job_with_display_output = function(title_text, command, args)
       if not vim.api.nvim_buf_is_valid(bufnr) then return end
 
       if code == 0 then
-        vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, {"", ("="):rep(40), "  Success! <Enter> to close.", ("="):rep(40)})
+        vim.api.nvim_buf_set_lines(bufnr,
+          -1,
+          -1,
+          false,
+          {"", ("="):rep(40), "  Success! <Enter> to close.", ("="):rep(40)}
+        )
       else
-        vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, {"", ("="):rep(40), "  Failed to complete. <Enter> to close.", ("="):rep(40)})
+        vim.api.nvim_buf_set_lines(bufnr,
+          -1,
+          -1,
+          false,
+          {"", ("="):rep(40), "  Failed to complete. <Enter> to close.", ("="):rep(40)}
+        )
       end
 
       local win_id = self.user_data.views.win_id
@@ -116,7 +126,7 @@ end)()
 neorocks._base_path                  = Path:new(vim.fn.stdpath('cache'), 'plenary_hererocks')
 neorocks._hererocks_file             = Path:new(vim.fn.stdpath('cache'), 'hererocks.py')
 neorocks._hererocks_install_location = Path:new(neorocks._base_path, neorocks._lua_version.dir)
-neorocks._is_setup                   = vim.fn.isdirectory(Path:new(neorocks._hererocks_install_location, "lib"):absolute()) > 0
+neorocks._is_setup                   = Path:new(neorocks._hererocks_install_location, "lib"):absolute():is_dir()
 
 neorocks._get_hererocks_job = function()
   local url_loc = 'https://raw.githubusercontent.com/luarocks/hererocks/latest/hererocks.py'

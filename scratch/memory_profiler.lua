@@ -23,7 +23,7 @@ collectgarbage("collect")
 mri.m_cMethods.DumpMemorySnapshot("./", "1-Before", -1)
 
 -- Add a global variable.
-local author = 
+local author =
 {
     Name = "yaukeywang",
     Job = "Game Developer",

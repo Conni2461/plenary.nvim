@@ -13,7 +13,8 @@
 --
 ---------------------------------------|
 
-local PROFILER_FILENAME = "lua/telescope/profile/lua_profiler.lua" -- Location and name of profiler (to remove itself from reports);
+-- Location and name of profiler (to remove itself from reports)
+local PROFILER_FILENAME = "lua/telescope/profile/lua_profiler.lua"
 -- e.g. if this is in a 'tool' folder, rename this as: "tool/profiler.lua"
 
 local EMPTY_TIME = "0.0000" -- Detect empty time, replace with tag below
@@ -27,9 +28,11 @@ local relaWidth = 6
 local callWidth = 4
 
 local reportSaved = " > Report saved to"
-local formatOutputHeader = "| %-"..fileWidth.."s: %-"..funcWidth.."s: %-"..lineWidth.."s: %-"..timeWidth.."s: %-"..relaWidth.."s: %-"..callWidth.."s|\n"
-local formatOutputTitle = "%-"..fileWidth.."."..fileWidth.."s: %-"..funcWidth.."."..funcWidth.."s: %-"..lineWidth.."s" -- File / Function / Line count
-local formatOutput = "| %s: %-"..timeWidth.."s: %-"..relaWidth.."s: %-"..callWidth.."s|\n" -- Time / Relative / Called
+local formatOutputHeader = "| %-"..fileWidth.."s: %-"..funcWidth.."s: %-"..lineWidth.."s: %-"..timeWidth.."s: %-"..relaWidth.."s: %-"..callWidth.."s|\n" -- luacheck: ignore
+--                         File                                Function                            Line count
+local formatOutputTitle = "%-"..fileWidth.."."..fileWidth.."s: %-"..funcWidth.."."..funcWidth.."s: %-"..lineWidth.."s"
+--                          Time                Relative            Called
+local formatOutput = "| %s: %-"..timeWidth.."s: %-"..relaWidth.."s: %-"..callWidth.."s|\n"
 local formatTotalTime = "TOTAL TIME   = %f s\n"
 local formatFunLine = "%"..(lineWidth - 2).."i"
 local formatFunTime = "%04.4f"
@@ -119,8 +122,8 @@ local function charRepetition(n, character)
 end
 
 local function singleSearchReturn(str, search)
-  for _ in string.gmatch(str, search) do
-    do return true end
+  if string.gmatch(str, search) then
+    return true
   end
   return false
 end

@@ -83,7 +83,7 @@ function Path:new(...)
 
   if type(self) == 'string' then
     table.insert(args, 1, self)
-    self = Path
+    self = Path -- luacheck: ignore 311
   end
 
   local path_input

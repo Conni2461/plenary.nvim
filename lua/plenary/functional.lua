@@ -32,9 +32,9 @@ function f.partial(fun, ...)
   end
 end
 
-function f.any(f, iterable)
+function f.any(fn, iterable)
   for k, v in pairs(iterable) do
-    if f(k, v) then
+    if fn(k, v) then
       return true
     end
   end
@@ -42,9 +42,9 @@ function f.any(f, iterable)
   return false
 end
 
-function f.all(f, iterable)
+function f.all(fn, iterable)
   for k, v in pairs(iterable) do
-    if not f(k, v) then
+    if not fn(k, v) then
       return false
     end
   end

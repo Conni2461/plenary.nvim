@@ -65,7 +65,7 @@ function popup.popup_create(what, vim_options)
   end
 
   if vim_options.pos then
-    if vim_options.pos == 'center' then
+    if vim_options.pos == 'center' then -- luacheck: ignore 542
       -- TODO: Do centering..
     else
       win_opts.anchor = popup._pos_map[vim_options.pos]
@@ -77,7 +77,7 @@ function popup.popup_create(what, vim_options)
   -- 		vertically and there is more space on the other side
   -- 		then the popup is placed on the other side of the
   -- 		position indicated by "line".
-  if dict_default(vim_options, 'posinvert', option_defaults) then
+  if dict_default(vim_options, 'posinvert', option_defaults) then -- luacheck: ignore 542
     -- TODO: handle the invert thing
   end
 
@@ -106,9 +106,9 @@ function popup.popup_create(what, vim_options)
   -- border
   local border_options = {}
   if vim_options.border then
-    local b_top, b_rgight, b_bot, b_left, b_topleft, b_topright, b_botright, b_botleft
+    local b_top, b_rgight, b_bot, b_left, b_topleft, b_topright, b_botright, b_botleft -- luacheck: ignore 231
     if vim_options.borderchars == nil then
-      b_top , b_rgight , b_bot , b_left , b_topleft , b_topright , b_botright , b_botleft = {
+      b_top , b_rgight , b_bot , b_left , b_topleft , b_topright , b_botright , b_botleft = { -- luacheck: ignore 532
         '-' , '|'      , '-'   , '|'    , '┌'        , '┐'       , '┘'       , '└'
       }
     elseif #vim_options.borderchars == 1 then
@@ -118,7 +118,7 @@ function popup.popup_create(what, vim_options)
       -- TODO: Unpack to edges & corners
       print('...')
     elseif #vim_options.borderchars == 8 then
-      b_top , b_rgight , b_bot , b_left , b_topleft , b_topright , b_botright , b_botleft = vim_options.borderhighlight
+      b_top , b_rgight , b_bot , b_left , b_topleft , b_topright , b_botright , b_botleft = vim_options.borderhighlight -- luacheck: ignore
     end
   end
 
@@ -136,7 +136,7 @@ function popup.popup_create(what, vim_options)
   if vim_options.moved then
     if vim_options.moved == 'any' then
       vim.lsp.util.close_preview_autocmd({'CursorMoved', 'CursorMovedI'}, win_id)
-    elseif vim_options.moved == 'word' then
+    elseif vim_options.moved == 'word' then -- luacheck: ignore 542
       -- TODO: Handle word, WORD, expr, and the range functions... which seem hard?
     end
   else
@@ -207,4 +207,3 @@ popup.show = function()
 end
 
 return popup
-

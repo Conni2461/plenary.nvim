@@ -10,8 +10,8 @@ local util, parse, api = c.util, c.parse, c.api
 util.url_encode = function(str)
   if type(str) ~= "number" then
   str = str:gsub("\r?\n", "\r\n")
-  str = str:gsub("([^%w%-%.%_%~ ])", function(c)
-    return string.format("%%%02X", c:byte())
+  str = str:gsub("([^%w%-%.%_%~ ])", function(char)
+    return string.format("%%%02X", char:byte())
   end)
   str = str:gsub(" ", "+")
   return str

@@ -1,16 +1,21 @@
-local Path = require'plenary.path'
-local os_sep = Path.path.sep
+local Path = require('plenary.path')
 local F = require('plenary.functional')
+local Array = require('plenary.collections.array')
 
 local uv = vim.loop
+local os_sep = Path.path.sep
+
+local concat = function(a, b)
+  return a .. os_sep .. b
+end
 
 local m = {}
 
-local get_gitignore = function(basepath)
+local get_gitignore = function(base_paths)
   local gitignore = {}
   local valid = false
-  for _, v in ipairs(basepath) do
-    local p = Path:new(v .. os_sep .. '.gitignore')
+  for _, v in base_paths:iterator() do
+    local p = Path:new(concat(v, '.gitignore'))
     if p:exists() then
       valid = true
       gitignore[v] = {}
@@ -31,7 +36,7 @@ local get_gitignore = function(basepath)
 end
 
 local interpret_gitignore = function(gitignore, bp, entry)
-  for _, v in ipairs(bp) do
+  for _, v in bp:iterator() do
     if entry:find(v, 1, true) then
       for _, w in ipairs(gitignore[v]) do
         if entry:match(w) then return false end
@@ -42,7 +47,7 @@ local interpret_gitignore = function(gitignore, bp, entry)
 end
 
 local handle_depth = function(base_paths, entry, depth)
-  for _, v in ipairs(base_paths) do
+  for _, v in base_paths:iterator() do
     if entry:find(v, 1, true) then
       local cut = entry:sub(#v + 1, -1)
       cut = cut:sub(1, 1) == os_sep and cut:sub(2, -1) or cut
@@ -72,24 +77,23 @@ end
 
 local process_item = function(opts, name, typ, current_dir, next_dir, bp, data, giti, msp)
   if opts.hidden or name:sub(1, 1) ~= '.' then
+    local entry = concat(current_dir, name)
     if typ == 'directory' then
-      local entry = current_dir .. os_sep .. name
       if opts.depth then
-        table.insert(next_dir, handle_depth(bp, entry, opts.depth))
+        next_dir:add(handle_depth(bp, entry, opts.depth))
       else
-        table.insert(next_dir, entry)
+        next_dir:add(entry)
       end
       if opts.add_dirs then
         if not msp or msp(entry) then
-          table.insert(data, entry)
+          data:add(entry)
           if opts.on_insert then opts.on_insert(entry, typ) end
         end
       end
     else
-      local entry = current_dir .. os_sep .. name
       if not giti or interpret_gitignore(giti, bp, entry) then
         if not msp or msp(entry) then
-          table.insert(data, entry)
+          data:add(entry)
           if opts.on_insert then opts.on_insert(entry, typ) end
         end
       end
@@ -114,34 +118,35 @@ end
 m.scan_dir = function(path, opts)
   opts = opts or {}
 
-  local data = {}
-  local base_paths = vim.tbl_flatten { path }
-  local next_dir = vim.tbl_flatten { path }
+  local data = Array:new()
+  local base_paths = Array:new(vim.tbl_flatten { path })
+  local next_dir = Array:new(vim.tbl_flatten { path })
 
   local gitignore = opts.respect_gitignore and get_gitignore(base_paths) or nil
   local match_seach_pat = opts.search_pattern and gen_search_pat(opts.search_pattern) or nil
 
-  for i = table.getn(base_paths), 1, -1 do
-    if uv.fs_access(base_paths[i], "X") == false then
+  for i, e in base_paths:rev_iterator() do
+    if uv.fs_access(e, "X") == false then
       if not F.if_nil(opts.silent, false, opts.silent) then
         print(string.format("%s is not accessible by the current user!", base_paths[i]))
       end
-      table.remove(base_paths, i)
+      base_paths:remove(i)
     end
   end
-  if table.getn(base_paths) == 0 then return {} end
+  if base_paths:is_empty() then return {} end
 
   repeat
-    local current_dir = table.remove(next_dir, 1)
+    local current_dir = next_dir:next()
     local fd = uv.fs_scandir(current_dir)
-    if fd == nil then break end
-    while true do
-      local name, typ = uv.fs_scandir_next(fd)
-      if name == nil then break end
-      process_item(opts, name, typ, current_dir, next_dir, base_paths, data, gitignore, match_seach_pat)
+    if fd then
+      while true do
+        local name, typ = uv.fs_scandir_next(fd)
+        if name == nil then break end
+        process_item(opts, name, typ, current_dir, next_dir, base_paths, data, gitignore, match_seach_pat)
+      end
     end
-  until table.getn(next_dir) == 0
-  return data
+  until not next_dir:has_next()
+  return data:raw()
 end
 
 --- m.scan_dir_async
@@ -161,10 +166,10 @@ end
 m.scan_dir_async = function(path, opts)
   opts = opts or {}
 
-  local data = {}
-  local base_paths = vim.tbl_flatten { path }
-  local next_dir = vim.tbl_flatten{ path }
-  local current_dir = table.remove(next_dir, 1)
+  local data = Array:new()
+  local base_paths = Array:new(vim.tbl_flatten { path })
+  local next_dir = Array:new(vim.tbl_flatten{ path })
+  local current_dir = next_dir:next()
 
   -- TODO(conni2461): get gitignore is not async
   local gitignore = opts.respect_gitignore and get_gitignore() or nil
@@ -172,15 +177,15 @@ m.scan_dir_async = function(path, opts)
 
   -- TODO(conni2461): is not async. Shouldn't be that big of a problem but still
   -- Maybe obers async pr can take me out of callback hell
-  for i = table.getn(base_paths), 1, -1 do
-    if uv.fs_access(base_paths[i], "X") == false then
+  for i, e in base_paths:rev_iterator() do
+    if uv.fs_access(e, "X") == false then
       if not F.if_nil(opts.silent, false, opts.silent) then
         print(string.format("%s is not accessible by the current user!", base_paths[i]))
       end
-      table.remove(base_paths, i)
+      base_paths:remove(i)
     end
   end
-  if table.getn(base_paths) == 0 then return {} end
+  if base_paths:is_empty() then return {} end
 
   local read_dir
   read_dir = function(err, fd)
@@ -190,10 +195,10 @@ m.scan_dir_async = function(path, opts)
         if name == nil then break end
         process_item(opts, name, typ, current_dir, next_dir, base_paths, data, gitignore, match_seach_pat)
       end
-      if table.getn(next_dir) == 0 then
-        if opts.on_exit then opts.on_exit(data) end
+      if not next_dir:has_next() then
+        if opts.on_exit then opts.on_exit(data:raw()) end
       else
-        current_dir = table.remove(next_dir, 1)
+        current_dir = next_dir:next()
         uv.fs_scandir(current_dir, read_dir)
       end
     end
@@ -354,7 +359,7 @@ local gen_ls = function(data, path, opts)
 
   local check_link = function(per, file)
     if per:sub(1, 1) == 'l' then
-      local resolved = uv.fs_realpath(path .. os_sep .. file)
+      local resolved = uv.fs_realpath(concat(path, file))
       if not resolved then return file end
       if resolved:sub(1, #path) == path then resolved = resolved:sub(#path + 2, -1) end
       return string.format('%s -> %s', file, resolved)
@@ -362,7 +367,8 @@ local gen_ls = function(data, path, opts)
     return file
   end
 
-  local results, sections = {}, {}
+  local results = Array:new()
+  local sections = Array:new()
 
   local users_tbl = os_sep ~= '\\' and {} or nil
   local groups_tbl = os_sep ~= '\\' and {} or nil
@@ -383,19 +389,19 @@ local gen_ls = function(data, path, opts)
 
       return function(...)
         local args = {...}
-        local section = {
+        local section = Array:new({
           { start_index = 01, end_index = 11 }, -- permissions, hardcoded indexes
           { start_index = 12, end_index = 17 }, -- size, hardcoded indexes
-        }
+        })
         local cur_index = 19
         for k = 5, 6 do
           local v = section_spacing_tbl[k]
           local end_index = cur_index + #args[k]
-          table.insert(section, { start_index = cur_index, end_index = end_index })
+          section:add({ start_index = cur_index, end_index = end_index })
           cur_index = end_index + v
         end
-        table.insert(sections, section)
-        table.insert(results, string.format('%10s %5s  %s  %s', args[1], args[2], args[5], check_link(args[1], args[6])))
+        sections:add(section:raw())
+        results:add(string.format('%10s %5s  %s  %s', args[1], args[2], args[5], check_link(args[1], args[6])))
       end
     else
       local max_user_len = get_max_len(users_tbl)
@@ -410,30 +416,29 @@ local gen_ls = function(data, path, opts)
 
       return function(...)
         local args = {...}
-        local section = {
+        local section = Array:new({
           { start_index = 01, end_index = 11 }, -- permissions, hardcoded indexes
           { start_index = 12, end_index = 17 }, -- size, hardcoded indexes
-        }
+        })
         local cur_index = 18
         for k = 3, 6 do
           local v = section_spacing_tbl[k]
           local end_index = cur_index + #args[k]
-          table.insert(section, { start_index = cur_index, end_index = end_index })
+          section:add({ start_index = cur_index, end_index = end_index })
           if v.max then
             cur_index = cur_index + v.max + v.add
           else
             cur_index = end_index + v.add
           end
         end
-        table.insert(sections, section)
-        table.insert(results,
-          string.format(fmt_str, args[1], args[2], args[3], args[4], args[5], check_link(args[1], args[6]))
-        )
+        sections:add(section:raw())
+        results:add(string.format(fmt_str, args[1], args[2], args[3], args[4], args[5], check_link(args[1], args[6])))
       end
     end
   end)()
 
-  for name, stat in pairs(stats) do
+  for _, name in ipairs(data) do
+    local stat = stats[name]
     insert_in_results(
       gen_permissions(permissions_cache, stat.mode),
       gen_size(stat.size),
@@ -445,23 +450,23 @@ local gen_ls = function(data, path, opts)
   end
 
   if opts and opts.group_directories_first then
-    local sorted_results = {}
-    local sorted_sections = {}
-    for k, v in ipairs(results) do
+    local sorted_results = Array:new()
+    local sorted_sections = Array:new()
+    for k, v in results:iterator() do
       if v:sub(1, 1) == 'd' then
-        table.insert(sorted_results, v)
-        table.insert(sorted_sections, sections[k])
+        sorted_results:add(v)
+        sorted_sections:add(sections:raw()[k])
       end
     end
-    for k, v in ipairs(results) do
+    for k, v in results:iterator() do
       if v:sub(1, 1) ~= 'd' then
-        table.insert(sorted_results, v)
-        table.insert(sorted_sections, sections[k])
+        sorted_results:add(v)
+        sorted_sections:add(sections:raw()[k])
       end
     end
-    return sorted_results, sorted_sections
+    return sorted_results:raw(), sorted_sections:raw()
   else
-    return results, sections
+    return results:raw(), sections:raw()
   end
 end
 

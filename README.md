@@ -93,10 +93,6 @@ end
 - [vgit.nvim](https://github.com/tanvirtin/vgit.nvim)
 - [neogit](https://github.com/TimUntersberger/neogit)
 
-### plenary.async_lib
-
-Please use `plenary.async` instead. This was version 1 and is just here for compatibility reasons.
-
 ### plenary.job
 
 A Lua module to interact with system processes. Pass in your `command`, the desired `args`, `env` and `cwd`.

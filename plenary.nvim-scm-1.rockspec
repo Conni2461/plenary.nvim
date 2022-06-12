@@ -67,15 +67,6 @@ build = {
 	   ["plenary.async.util"] = "lua/plenary/async/util.lua",
 	   ["plenary.async.uv_async"] = "lua/plenary/async/uv_async.lua",
 
-	   ["plenary.async_lib.api"] = "lua/plenary/async_lib/api.lua",
-	   ["plenary.async_lib.async"] = "lua/plenary/async_lib/async.lua",
-	   ["plenary.async_lib.init"] = "lua/plenary/async_lib/init.lua",
-	   ["plenary.async_lib.lsp"] = "lua/plenary/async_lib/lsp.lua",
-	   ["plenary.async_lib.structs"] = "lua/plenary/async_lib/structs.lua",
-	   ["plenary.async_lib.tests"] = "lua/plenary/async_lib/tests.lua",
-	   ["plenary.async_lib.util"] = "lua/plenary/async_lib/util.lua",
-	   ["plenary.async_lib.uv_async"] = "lua/plenary/async_lib/uv_async.lua",
-
 	   ["plenary.collections.py_list"] = "lua/plenary/collections/py_list.lua",
 
 	   ["plenary.lsp.override"] = "lua/plenary/lsp/override.lua",
@@ -100,4 +91,3 @@ build = {
 	   'plugin'
    }
 }
-
